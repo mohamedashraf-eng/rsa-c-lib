@@ -26,6 +26,7 @@ CMakeFiles/rsa_lib.dir/src/rsa_prg.c.obj: ../src/rsa_prg.c \
   C:/MinGW/lib/gcc/mingw32/6.3.0/include/stdarg.h \
   C:/MinGW/lib/gcc/mingw32/6.3.0/include/stdint.h \
   C:/MinGW/include/stdint.h \
+  C:/MinGW/include/stdlib.h \
   C:/MinGW/include/string.h \
   C:/MinGW/include/strings.h \
   C:/MinGW/include/wchar.h \
