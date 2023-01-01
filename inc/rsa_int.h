@@ -28,7 +28,18 @@ extern "C" {
 *--------------------------------------------------------------------------------------
 **/
 
-
+/**
+ * @defgroup Configuration Parameters
+ *      @arg DEBUGGING_ACTIVE
+ *      @arg DEBUGGING_INACTIVE
+ */
+#define DEBUGGING_FLAG              (DEBUGGING_ACTIVE)
+/**
+ * @defgroup Configuration Parameters
+ *      @arg FULL_ASSERTION_ACTIVE
+ *      @arg FULL_ASSERTION_INACTIVE
+ */
+#define FULL_ASSERTION_FLAG         (FULL_ASSERTION_ACTIVE)
 
 /*
 *--------------------------------------------------------------------------------------
@@ -36,14 +47,14 @@ extern "C" {
 *--------------------------------------------------------------------------------------
 **/
 
-
-
 /*
 *--------------------------------------------------------------------------------------
 *- Public Functions Declaration
 *--------------------------------------------------------------------------------------
 **/
 
+
+void public_testing(void);
 
 
 

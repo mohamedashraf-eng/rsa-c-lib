@@ -21,9 +21,9 @@
  */
 int main(void)
 {
-    printf("\n Hello?");
+    public_testing();
 
-
+    printf("\n");
     /* Run forever */
     while(1) {;}
 
