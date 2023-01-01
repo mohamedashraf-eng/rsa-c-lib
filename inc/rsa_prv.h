@@ -93,7 +93,6 @@ typedef enum en_PrimeNumbersStatus
   numberIsPrime
 }en_PrimeNumbersStatus_t;
 
-typedef uint64_t tLargeRets_t;
 
 /*
 *--------------------------------------------------------------------------------------
@@ -103,15 +102,14 @@ typedef uint64_t tLargeRets_t;
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE tLargeRets_t 
+_STATIC_INLINE uint64_t 
 getPrimeNumber(void);
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE void 
+_STATIC_INLINE uint64_t 
 getEncryptionModulus(const uint64_t PrimeNumberA, 
-                     const uint64_t PrimeNumberB,
-                     uint64_t * const pEncryptionModulus);
+                     const uint64_t PrimeNumberB);
 _FORCE_INLINE
 _STATIC_INLINE uint64_t 
 mulMod(uint64_t a, uint64_t b, const uint64_t mod);
@@ -126,7 +124,7 @@ isPrimeNumber(uint64_t primeNumber);
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE tLargeRets_t
+_STATIC_INLINE uint64_t
 getGCD(uint64_t numA, uint64_t numB);
 
 

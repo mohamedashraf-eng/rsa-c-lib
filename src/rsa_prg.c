@@ -37,6 +37,7 @@
 *--------------------------------------------------------------------------------------
 **/
 
+st_rsa_t my_rsa_lib = {0};
 
 /*
 *--------------------------------------------------------------------------------------
@@ -53,9 +54,7 @@ void public_testing(void)
 	isPrimeNumber(primeNumberA);
 	isPrimeNumber(primeNumberB);
 
-	//getEncryptionModulus(primeNumberA, primeNumberB, &encMod);
-
-	uint64_t gcd = getGCD(primeNumberA, primeNumberB);
+	getEncryptionModulus(primeNumberA, primeNumberB);
 
 }
 
@@ -85,7 +84,6 @@ powMod(uint64_t n, uint64_t exp, const uint64_t mod)
  * @brief Miller-Rabin primality test function (it should be a deterministic version).
  * 			  Using the 'repeated squaring' method the algorithm time complexity
  * 				T = `O(k log^3(n))`; k: number of rounds, n: the passed number.
- * 
  */
 _STATIC_INLINE en_PrimeNumbersStatus_t
 isPrimeNumber(uint64_t primeNumber)
@@ -100,14 +98,14 @@ isPrimeNumber(uint64_t primeNumber)
 	uint8_t PrimeNumbers[] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
 	uint64_t t = 0x00u;
 	uint64_t B = 0x00u;
-	uint32_t s = 0x00u;
+	uint32_t register s = 0x00u;
 
 	/* Function body */
 	if (primeNumber > PrimeNumbers[numOfPrimes - 0x01u]) 
 	{
 		for (t = primeNumber - 1; ~t & 0x01u; t >>= 0x01u, ++s);
 
-		uint64_t i = 0x00u;
+		uint64_t register i = 0x00u;
 		for (; i < numOfPrimes && primeNumberStatus; ++i) 
 		{
 			B = powMod(PrimeNumbers[i], t, primeNumber);
@@ -134,31 +132,34 @@ isPrimeNumber(uint64_t primeNumber)
 	return primeNumberStatus; 
 }/* isPrimeNumber */
 
-_STATIC_INLINE tLargeRets_t
+_STATIC_INLINE uint64_t
 getPrimeNumber(void)
 {
 	/* Function data types */
-	const uint64_t largePrimeNumbers[PRIME_NUMBERS_DB_SIZE] = {
-		396813518307451871u, 
-		889483944081239707u, 
-		947387063867601961u, 
-		782806410827045321u, 
-		494997063088224343u, 
-		910060599641213897u, 
-		/** @todo to be add more / replace with generator */
-	};
-	
-	static uint8_t largePrimeNumbersDBCounter = 0x00u;
-	tLargeRets_t primeNumber = 0;
+	static uint64_t randNumber = UINT64_MAX;
+	uint64_t primeNumber = 0;
+	en_PrimeNumbersStatus_t numberStatus = numberNotPrime;
 
 	/* Function body */
+	/**
+	 * @brief Generating prime numbers using simple checker.
+	 * 
+	 */
+	while(numberNotPrime == numberStatus)
+	{
+		numberStatus = isPrimeNumber(randNumber);
 
-	/* Working as circular buffer */
-	if( (largePrimeNumbersDBCounter >= PRIME_NUMBERS_DB_SIZE) )
-	{ largePrimeNumbersDBCounter = 0;}
-	else {;}
-
-	primeNumber = largePrimeNumbers[largePrimeNumbersDBCounter++];
+		if( (numberNotPrime == numberStatus) )
+		{
+			--randNumber;
+		}	
+		else
+		{
+			primeNumber = randNumber;
+			break;
+		}
+	}
+	--randNumber;
 
 #if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
 	win64_dbg_msg("Generated prime: %llu", primeNumber);
@@ -167,33 +168,52 @@ getPrimeNumber(void)
 	return primeNumber;
 }/* getPrimeNumber */
 
-_STATIC_INLINE void
+_STATIC_INLINE uint64_t 
 getEncryptionModulus(const uint64_t PrimeNumberA, 
-                     const uint64_t PrimeNumberB,
-                     uint64_t * const pEncryptionModulus)
+                     const uint64_t PrimeNumberB)
 {
 	/* Validating */
 #if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
 	STATIC_ASSERT((PrimeNumberA > 0), DEFAULT_EXIT_CODE);
 	STATIC_ASSERT((PrimeNumberB > 0), DEFAULT_EXIT_CODE);
-	STATIC_ASSERT((pEncryptionModulus != NULL), DEFAULT_EXIT_CODE);	
 #endif
 	/* Function data types */
 	uint64_t encryptionModulus = 0x00u;
+	uint64_t phi = (PrimeNumberA - 0x01u) * (PrimeNumberB - 0x01u);
+	uint64_t gcd = 0x00u;
 
 	/* Function body */
-	encryptionModulus = PrimeNumberA * PrimeNumberB;
+	/**
+	 * @brief Encryption modulus also referred as 'e', it is the modulus needed
+	 * 			  for encrypting and decrypting the message.
+	 */
+	encryptionModulus = 0x02u;
 	
+	while(encryptionModulus < phi)
+	{
+		/**
+		 * @brief The encryption modulus must be co-prime to phi,
+		 * 			  and smaller than phi.
+		 */
+		gcd = getGCD(encryptionModulus, phi);
+		if( (0x01u == gcd) )
+		{ break; }
+		else
+		{ ++encryptionModulus; }
+	}
+	my_rsa_lib.math_parameters.e = encryptionModulus;
+
 #if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
 	win64_dbg_msg("Encryption modulus: %llu", encryptionModulus);
 #endif
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((my_rsa_lib.math_parameters.e == encryptionModulus), DEFAULT_EXIT_CODE);
+#endif
 
-	*pEncryptionModulus = encryptionModulus;
-
-	return;
+	return encryptionModulus;
 }/* getEncryptionModulus */
 
-_STATIC_INLINE tLargeRets_t
+_STATIC_INLINE uint64_t
 getGCD(uint64_t numA, uint64_t numB)
 {
 #if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
