@@ -34,9 +34,9 @@ extern "C" {
 	 * 	@attention 
 	 * 		This function like macro is compatible starts from GCC-89/90
 	 */
-	#define win64_dbg_msg(format, args...) ({ \
+	#define win64_dbg_msg(format, ...) ({ \
 						fprintf(stderr, "\n=> File: %s, Function: %s, Line: %d\n DBG_MSG: "format"\n", \
-						__FILE__, __FUNCTION__, __LINE__, (args)); \
+						__FILE__, __FUNCTION__, __LINE__, ## __VA_ARGS__); \
 					})
 #endif
 
@@ -52,9 +52,9 @@ extern "C" {
 							exit((_EXIT_CODE)); \
 						})
 	#else
-			#define exit_on_failure(_EXIT_CODE) do{ \
+			#define exit_on_failure(_EXIT_CODE) ({ \
 							exit((_EXIT_CODE)); \
-						}while(0)
+						})
 	#endif
 	#define DEFAULT_EXIT_CODE (-1)
 	/** @brief Function like macro used for assertion statically
@@ -68,9 +68,7 @@ extern "C" {
 
 /** @defgroup attributs macros */
 #define _STATIC_INLINE static inline
-
 #define _FORCE_INLINE __attribute__((always_inline))
-
 #define _FORCE_CONST __attribute__((const))
 
 /** @defgroup Configuration parameters macros */
@@ -80,7 +78,7 @@ extern "C" {
 #define FULL_ASSERTION_INACTIVE     (0x00u)
 #define FULL_ASSERTION_ACTIVE       (0x01u)
 
-
+/** @defgroup Program macros */
 #define PRIME_NUMBERS_DB_SIZE 		(0x7Fu)
 
 /*
@@ -95,6 +93,7 @@ typedef enum en_PrimeNumbersStatus
   numberIsPrime
 }en_PrimeNumbersStatus_t;
 
+typedef uint64_t tLargeRets_t;
 
 /*
 *--------------------------------------------------------------------------------------
@@ -104,8 +103,8 @@ typedef enum en_PrimeNumbersStatus
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE void 
-getPrimeNumber(uint64_t * const pPrimeNumber);
+_STATIC_INLINE tLargeRets_t 
+getPrimeNumber(void);
 
 _FORCE_INLINE
 _FORCE_CONST
@@ -113,7 +112,6 @@ _STATIC_INLINE void
 getEncryptionModulus(const uint64_t PrimeNumberA, 
                      const uint64_t PrimeNumberB,
                      uint64_t * const pEncryptionModulus);
-
 _FORCE_INLINE
 _STATIC_INLINE uint64_t 
 mulMod(uint64_t a, uint64_t b, const uint64_t mod);
@@ -126,6 +124,10 @@ _FORCE_INLINE
 _STATIC_INLINE en_PrimeNumbersStatus_t 
 isPrimeNumber(uint64_t primeNumber);
 
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE tLargeRets_t
+getGCD(uint64_t numA, uint64_t numB);
 
 
 

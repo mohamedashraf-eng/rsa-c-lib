@@ -31,6 +31,8 @@ CMakeFiles/rsa_lib.dir/src/rsa_prg.c.obj: ../src/rsa_prg.c \
   C:/MinGW/include/strings.h \
   C:/MinGW/include/wchar.h \
   C:/MinGW/include/math.h \
+  ../inc/rsa_cfg.h \
+  ../inc/rsa_prv.h \
   ../inc/rsa_int.h
 
 
@@ -47,6 +49,8 @@ C:/MinGW/include/msvcrtver.h:
 C:/MinGW/lib/gcc/mingw32/6.3.0/include/stddef.h:
 
 C:/MinGW/include/w32api.h:
+
+../inc/rsa_cfg.h:
 
 C:/MinGW/include/sys/types.h:
 
@@ -69,3 +73,5 @@ C:/MinGW/include/string.h:
 C:/MinGW/include/strings.h:
 
 C:/MinGW/include/math.h:
+
+../inc/rsa_prv.h:

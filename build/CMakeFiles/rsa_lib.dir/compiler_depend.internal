@@ -33,5 +33,7 @@ CMakeFiles/rsa_lib.dir/src/rsa_prg.c.obj
  C:/MinGW/include/strings.h
  C:/MinGW/include/wchar.h
  C:/MinGW/include/math.h
+ H:/WX_CAREER/Projects/Encrpytion_TRAIn/RSA/inc/rsa_cfg.h
+ H:/WX_CAREER/Projects/Encrpytion_TRAIn/RSA/inc/rsa_prv.h
  H:/WX_CAREER/Projects/Encrpytion_TRAIn/RSA/inc/rsa_int.h
 

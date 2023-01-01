@@ -19,6 +19,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "rsa_cfg.h"
+#include "rsa_prv.h"
 #include "rsa_int.h"
 
 /*
@@ -27,102 +29,14 @@
 *--------------------------------------------------------------------------------------
 **/
 
-/** @defgroup Debugging macros */
 
-#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
-	/** @brief Function like macro used for debug messages
-	 * 	@attention 
-	 * 		This function like macro is compatible starts from GCC-89/90
-	 */
-	#define win64_dbg_msg(format, args...) ({ \
-						fprintf(stderr, "\n=> File: %s, Function: %s, Line: %d\n DBG_MSG: "format"\n", \
-						__FILE__, __FUNCTION__, __LINE__, (args)); \
-					})
-#endif
-
-#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
-
-	/** @brief Function like macro used for terminating the program on assertion failure
-	 * 	@attention 
-	 * 		This function like macro is compatible starts from GCC-89/90
-	 */
-	#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
-		#define exit_on_failure(_EXIT_CODE) ({ \
-							win64_dbg_msg("ASSERTION_FAILURE - EXIT_CODE=%d", (_EXIT_CODE)); \
-							exit((_EXIT_CODE)); \
-						})
-	#else
-			#define exit_on_failure(_EXIT_CODE) do{ \
-							exit((_EXIT_CODE)); \
-						}while(0)
-	#endif
-	#define DEFAULT_EXIT_CODE (-1)
-	/** @brief Function like macro used for assertion statically
-	 * 	@attention 
-	 * 		This function like macro is compatible starts from GCC-89/90
-	 */
-	#define STATIC_ASSERT(EXPRESSION, _EXIT_CODE) ({ \
-						(EXPRESSION) ? (NULL) : (exit_on_failure(_EXIT_CODE)); \
-					})
-#endif
-
-/** @defgroup attributs macros */
-#define _STATIC_INLINE static inline
-
-#define _FORCE_INLINE __attribute__((always_inline))
-
-#define _FORCE_CONST __attribute__((const))
-
-/** @defgroup Configuration parameters macros */
-#define DEBUGGING_INACTIVE          (0x00u)
-#define DEBUGGING_ACTIVE            (0x01u)
-
-#define FULL_ASSERTION_INACTIVE     (0x00u)
-#define FULL_ASSERTION_ACTIVE       (0x01u)
-
-
-#define PRIME_NUMBERS_DB_SIZE 		  (0x7Fu)
 
 /*
 *--------------------------------------------------------------------------------------
 *- Data types
 *--------------------------------------------------------------------------------------
 **/
-typedef enum en_PrimeNumbersStatus
-{
-	numberNotPrime = 0x00u,
-  numberIsPrime
-}en_PrimeNumbersStatus_t;
 
-/*
-*--------------------------------------------------------------------------------------
-*- Private Functions Declaration
-*--------------------------------------------------------------------------------------
-**/
-
-_FORCE_INLINE
-_FORCE_CONST
-_STATIC_INLINE void 
-getPrimeNumber(uint64_t * const pPrimeNumber);
-
-_FORCE_INLINE
-_FORCE_CONST
-_STATIC_INLINE void 
-getEncryptionModulus(const uint64_t PrimeNumberA, 
-                     const uint64_t PrimeNumberB,
-                     uint64_t * const pEncryptionModulus);
-
-_FORCE_INLINE
-_STATIC_INLINE uint64_t 
-mulMod(uint64_t a, uint64_t b, const uint64_t mod);
-
-_FORCE_INLINE
-_STATIC_INLINE uint64_t 
-powMod(uint64_t n, uint64_t exp, const uint64_t mod);
-
-_FORCE_INLINE
-_STATIC_INLINE en_PrimeNumbersStatus_t 
-isPrimeNumber(uint64_t primeNumber);
 
 /*
 *--------------------------------------------------------------------------------------
@@ -132,16 +46,16 @@ isPrimeNumber(uint64_t primeNumber);
 
 void public_testing(void)
 {
-	uint64_t primeNumberA = 0;
-	uint64_t primeNumberB = 0;
+	uint64_t primeNumberA = getPrimeNumber();;
+	uint64_t primeNumberB = getPrimeNumber();;
 	uint64_t encMod = 0;
 
-	getPrimeNumber(&primeNumberA);
-	getPrimeNumber(&primeNumberB);
-
 	isPrimeNumber(primeNumberA);
+	isPrimeNumber(primeNumberB);
 
 	//getEncryptionModulus(primeNumberA, primeNumberB, &encMod);
+
+	uint64_t gcd = getGCD(primeNumberA, primeNumberB);
 
 }
 
@@ -182,8 +96,8 @@ isPrimeNumber(uint64_t primeNumber)
 #endif
 	/* Function data types */
 	en_PrimeNumbersStatus_t primeNumberStatus = numberIsPrime;
-	const uint64_t numOfPrimes = 9; 
-	uint64_t PrimeNumbers[] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
+	const uint8_t numOfPrimes = 9; 
+	uint8_t PrimeNumbers[] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
 	uint64_t t = 0x00u;
 	uint64_t B = 0x00u;
 	uint32_t s = 0x00u;
@@ -193,12 +107,14 @@ isPrimeNumber(uint64_t primeNumber)
 	{
 		for (t = primeNumber - 1; ~t & 0x01u; t >>= 0x01u, ++s);
 
-		for (uint64_t i = 0x00u; i < numOfPrimes && primeNumberStatus; ++i) 
+		uint64_t i = 0x00u;
+		for (; i < numOfPrimes && primeNumberStatus; ++i) 
 		{
 			B = powMod(PrimeNumbers[i], t, primeNumber);
 			if (B != 1) 
 			{
-				for (uint32_t b = s; b-- && (primeNumberStatus = B + 0x01u != primeNumber);)
+				uint32_t b = s;
+				for (; b-- && (primeNumberStatus = B + 0x01u != primeNumber);)
 				{ B = mulMod(B, B, primeNumber); }
 
 				primeNumberStatus = !primeNumberStatus;
@@ -218,13 +134,9 @@ isPrimeNumber(uint64_t primeNumber)
 	return primeNumberStatus; 
 }/* isPrimeNumber */
 
-_STATIC_INLINE void
-getPrimeNumber(uint64_t * const pPrimeNumber)
+_STATIC_INLINE tLargeRets_t
+getPrimeNumber(void)
 {
-	/* Validating */
-#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
-	STATIC_ASSERT((pPrimeNumber != NULL), DEFAULT_EXIT_CODE);	
-#endif
 	/* Function data types */
 	const uint64_t largePrimeNumbers[PRIME_NUMBERS_DB_SIZE] = {
 		396813518307451871u, 
@@ -235,8 +147,9 @@ getPrimeNumber(uint64_t * const pPrimeNumber)
 		910060599641213897u, 
 		/** @todo to be add more / replace with generator */
 	};
+	
 	static uint8_t largePrimeNumbersDBCounter = 0x00u;
-	uint64_t primeNumber = 0;
+	tLargeRets_t primeNumber = 0;
 
 	/* Function body */
 
@@ -250,10 +163,8 @@ getPrimeNumber(uint64_t * const pPrimeNumber)
 #if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
 	win64_dbg_msg("Generated prime: %llu", primeNumber);
 #endif
-	
-	*pPrimeNumber = primeNumber;
 
-	return;
+	return primeNumber;
 }/* getPrimeNumber */
 
 _STATIC_INLINE void
@@ -281,3 +192,36 @@ getEncryptionModulus(const uint64_t PrimeNumberA,
 
 	return;
 }/* getEncryptionModulus */
+
+_STATIC_INLINE tLargeRets_t
+getGCD(uint64_t numA, uint64_t numB)
+{
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((numA != 0), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((numB != 0), DEFAULT_EXIT_CODE);
+#endif
+
+	/* Function data types */
+	uint64_t tempVar = 0x00u;
+	uint64_t tempA = numA;
+	uint64_t tempB = numB;
+
+	/* Function body */
+	while(1)
+	{
+		tempVar = tempA % tempB;
+
+		if( (0x00u == tempVar) )
+		{ break; }
+		else;
+
+		tempA = tempB;
+		tempB = tempVar;
+	}
+
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+	win64_dbg_msg("GCD of `%llu`, `%llu` is `%llu`", numA, numB, tempB);
+#endif
+
+	return tempB;
+}/* getGCD */
