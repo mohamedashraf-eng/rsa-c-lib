@@ -37,23 +37,13 @@
 *--------------------------------------------------------------------------------------
 **/
 
-st_rsa_t my_rsa_lib = {0};
+static volatile st_rsa_t my_rsa_lib = {0};
 
 /*
 *--------------------------------------------------------------------------------------
 *- Public Functions Implementation
 *--------------------------------------------------------------------------------------
 **/
-
-void public_testing(void)
-{
-	uint64_t primeNumberA = getPrimeNumber();;
-	uint64_t primeNumberB = getPrimeNumber();;
-	uint64_t encMod = 0;
-
-	getPublicKeyParams(primeNumberA, primeNumberB);
-	getPrivateKeyParams(primeNumberA, primeNumberB);
-}
 
 void 
 generate_keys(const uint8_t * const pString)
@@ -63,6 +53,19 @@ generate_keys(const uint8_t * const pString)
 	STATIC_ASSERT((pString != NULL), DEFAULT_EXIT_CODE);	
 #endif
 
+	/* Function data types */
+	uint64_t primeNumberA = getPrimeNumber();
+	uint64_t primeNumberB = getPrimeNumber();
+
+	/* Function body */
+	getPublicKeyParams(primeNumberA, primeNumberB);
+	getPrivateKeyParams(primeNumberA, primeNumberB);
+
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+	win64_dbg_msg("data string: %s", pString);
+#endif
+
+	uint64_t *encryptedMsg = stringEncoder(pString);
 
 }
 
@@ -223,7 +226,7 @@ getEncryptionModulus(const uint64_t PrimeNumberA,
 	return encryptionModulus;
 }/* getEncryptionModulus */
 
-_STATIC_INLINE uint64_t
+_STATIC_INLINE void
 getPublicKeyParams(const uint64_t PrimeNumberA, 
              			 const uint64_t PrimeNumberB)
 {
@@ -252,7 +255,7 @@ getPublicKeyParams(const uint64_t PrimeNumberA,
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE uint64_t
+_STATIC_INLINE void
 getPrivateKeyParams(const uint64_t PrimeNumberA, 
               			const uint64_t PrimeNumberB)
 {
@@ -269,9 +272,14 @@ getPrivateKeyParams(const uint64_t PrimeNumberA,
 	uint64_t e = my_rsa_lib.math_parameters.e;
 
 	uint64_t d = (uint64_t) (( 0x01u + (k * phi)) / (double)e);
+	my_rsa_lib.math_parameters.d = d;
 
 #if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
 	win64_dbg_msg("d: %llu, k: %llu", d, k);
+#endif
+
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((my_rsa_lib.math_parameters.d == d), DEFAULT_EXIT_CODE);
 #endif
 }/* getPrivateKey */
 
@@ -307,3 +315,92 @@ getGCD(uint64_t numA, uint64_t numB)
 
 	return tempB;
 }/* getGCD */
+
+_STATIC_INLINE uint64_t *
+stringEncoder(const uint8_t * const pString)
+{
+	/* Validating */
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((pString != NULL), DEFAULT_EXIT_CODE);	
+#endif
+
+	/* Function data types */
+	uint64_t strLen = strlen(pString);
+
+	/**
+	 * @attention This method is using dynamic memory allocation (heap)
+	 * 					  which is not suitable for all systems such as embedded system.
+	 */
+	uint64_t *pEncryptedString = (uint64_t *) malloc(sizeof(uint64_t) * strLen);
+
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((pEncryptedString != NULL), DEFAULT_EXIT_CODE);	
+#endif
+
+	if( (pEncryptedString != NULL) )
+	{
+		uint64_t register i = 0x00u;
+
+		while(i < strLen)
+		{
+			pEncryptedString[i] = pubkeyEncrypter(pString[i]);
+			++i;
+		}
+	}
+	else
+	{
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+		win64_dbg_msg("pEncryptedString: NULL");
+#endif
+	}
+
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+	win64_dbg_msg("Encrypted message: \n");
+	printStrArrHex(pEncryptedString, strLen);
+#endif
+
+	return pEncryptedString;
+}/* stringEncoder */
+
+_STATIC_INLINE uint8_t
+pubkeyEncrypter(const uint8_t Letter)
+{
+	/* Validating */
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((Letter > 0), DEFAULT_EXIT_CODE);	
+#endif
+
+	uint64_t e = my_rsa_lib.math_parameters.e;
+	uint64_t decrypted = 0x01u;
+	uint64_t n = my_rsa_lib.math_parameters.n;
+
+	while(e--)
+	{
+		decrypted *= Letter;
+		decrypted %= n;
+	}
+
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+		win64_dbg_msg("Decrypted message letter: %x", decrypted);
+#endif
+
+	return decrypted;
+}/* pubkeyEncrypter */
+
+_STATIC_INLINE void
+printStrArrHex(const uint64_t * const pArr, 
+							 const uint64_t arrLen)
+{
+	/* Validating */
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((pArr != NULL), DEFAULT_EXIT_CODE);	
+#endif
+	uint64_t register i = 0x00u;
+
+	for(; i < arrLen; ++i)
+	{
+		printf("%x", pArr[i]);
+	}
+
+	return;
+}/* printArray */

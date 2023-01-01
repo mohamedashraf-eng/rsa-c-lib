@@ -21,7 +21,7 @@
  */
 int main(void)
 {
-    public_testing();
+    generate_keys("Hello? I am mohamed ashraf ");
 
     printf("\n");
     /* Run forever */

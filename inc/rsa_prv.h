@@ -93,6 +93,22 @@ typedef enum en_PrimeNumbersStatus
   numberIsPrime
 }en_PrimeNumbersStatus_t;
 
+/**
+ * @brief struct to store the algorithm parameters.
+*/
+typedef struct rsa_parameters
+{
+	struct rsa_math_parameters
+	{
+		uint64_t n;
+		uint64_t phi;
+		uint64_t e;
+		uint64_t d;
+	}math_parameters;
+
+	uint64_t publicKey;
+	uint64_t privateKey;
+}st_rsa_t;
 
 /*
 *--------------------------------------------------------------------------------------
@@ -111,14 +127,17 @@ _STATIC_INLINE uint64_t
 getEncryptionModulus(const uint64_t PrimeNumberA, 
                      const uint64_t PrimeNumberB);
 _FORCE_INLINE
+_FORCE_CONST
 _STATIC_INLINE uint64_t 
 mulMod(uint64_t a, uint64_t b, const uint64_t mod);
 
 _FORCE_INLINE
+_FORCE_CONST
 _STATIC_INLINE uint64_t 
 powMod(uint64_t n, uint64_t exp, const uint64_t mod);
 
 _FORCE_INLINE
+_FORCE_CONST
 _STATIC_INLINE en_PrimeNumbersStatus_t 
 isPrimeNumber(uint64_t primeNumber);
 
@@ -129,15 +148,31 @@ getGCD(uint64_t numA, uint64_t numB);
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE uint64_t
+_STATIC_INLINE void
 getPublicKeyParams(const uint64_t PrimeNumberA, 
-             const uint64_t PrimeNumberB);
+             			 const uint64_t PrimeNumberB);
 
 _FORCE_INLINE
 _FORCE_CONST
-_STATIC_INLINE uint64_t
+_STATIC_INLINE void
 getPrivateKeyParams(const uint64_t PrimeNumberA, 
               			const uint64_t PrimeNumberB);
+
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE uint64_t *
+stringEncoder(const uint8_t * const pString);
+
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE uint8_t
+pubkeyEncrypter(const uint8_t Letter);
+
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE void
+printStrArrHex(const uint64_t * const pArr, 
+							 const uint64_t arrLen);
 
 /** @def Handeling name mangle */
 #ifdef __cplusplus

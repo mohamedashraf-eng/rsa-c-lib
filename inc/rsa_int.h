@@ -32,21 +32,7 @@ extern "C" {
 *- Data types
 *--------------------------------------------------------------------------------------
 **/
-/**
- * @brief struct to store the algorithm parameters.
-*/
-typedef struct rsa_parameters
-{
-	struct 
-	{
-		uint64_t n;
-		uint64_t phi;
-		uint64_t e;
-	}math_parameters;
 
-	uint64_t publicKey;
-	uint64_t privateKey;
-}st_rsa_t;
 
 /*
 *--------------------------------------------------------------------------------------
@@ -56,9 +42,6 @@ typedef struct rsa_parameters
 
 void 
 generate_keys(const uint8_t * const pString);
-
-void 
-public_testing(void);
 
 
 
