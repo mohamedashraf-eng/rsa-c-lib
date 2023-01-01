@@ -51,10 +51,18 @@ void public_testing(void)
 	uint64_t primeNumberB = getPrimeNumber();;
 	uint64_t encMod = 0;
 
-	isPrimeNumber(primeNumberA);
-	isPrimeNumber(primeNumberB);
+	getPublicKeyParams(primeNumberA, primeNumberB);
+	getPrivateKeyParams(primeNumberA, primeNumberB);
+}
 
-	getEncryptionModulus(primeNumberA, primeNumberB);
+void 
+generate_keys(const uint8_t * const pString)
+{
+	/* Validating */
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((pString != NULL), DEFAULT_EXIT_CODE);	
+#endif
+
 
 }
 
@@ -136,7 +144,7 @@ _STATIC_INLINE uint64_t
 getPrimeNumber(void)
 {
 	/* Function data types */
-	static uint64_t randNumber = UINT64_MAX;
+	static uint64_t randNumber = 0xFFFFFFFFFFFFFu;
 	uint64_t primeNumber = 0;
 	en_PrimeNumbersStatus_t numberStatus = numberNotPrime;
 
@@ -201,17 +209,71 @@ getEncryptionModulus(const uint64_t PrimeNumberA,
 		else
 		{ ++encryptionModulus; }
 	}
-	my_rsa_lib.math_parameters.e = encryptionModulus;
+
+	my_rsa_lib.math_parameters.phi = phi;
 
 #if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
 	win64_dbg_msg("Encryption modulus: %llu", encryptionModulus);
 #endif
+
 #if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
-	STATIC_ASSERT((my_rsa_lib.math_parameters.e == encryptionModulus), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((my_rsa_lib.math_parameters.phi == phi), DEFAULT_EXIT_CODE);
 #endif
 
 	return encryptionModulus;
 }/* getEncryptionModulus */
+
+_STATIC_INLINE uint64_t
+getPublicKeyParams(const uint64_t PrimeNumberA, 
+             			 const uint64_t PrimeNumberB)
+{
+	/* Validating */
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((PrimeNumberA > 0), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((PrimeNumberB > 0), DEFAULT_EXIT_CODE);
+#endif
+
+	uint64_t n = PrimeNumberA * PrimeNumberB;
+	uint64_t e = getEncryptionModulus(PrimeNumberA, PrimeNumberB);
+
+	my_rsa_lib.math_parameters.n = n;
+	my_rsa_lib.math_parameters.e = e;
+
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+	win64_dbg_msg("n: %llu, e: %llu", n, e);
+#endif
+
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((my_rsa_lib.math_parameters.n == n), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((my_rsa_lib.math_parameters.e == e), DEFAULT_EXIT_CODE);
+#endif
+
+}/* getPublicKey */
+
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE uint64_t
+getPrivateKeyParams(const uint64_t PrimeNumberA, 
+              			const uint64_t PrimeNumberB)
+{
+	/* Validating */
+#if (FULL_ASSERTION_FLAG == FULL_ASSERTION_ACTIVE)
+	STATIC_ASSERT((PrimeNumberA > 0), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((PrimeNumberB > 0), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((my_rsa_lib.math_parameters.phi > 0), DEFAULT_EXIT_CODE);
+	STATIC_ASSERT((my_rsa_lib.math_parameters.e > 0), DEFAULT_EXIT_CODE);
+#endif
+
+	uint64_t k = 0x02u;
+	uint64_t phi = my_rsa_lib.math_parameters.phi;
+	uint64_t e = my_rsa_lib.math_parameters.e;
+
+	uint64_t d = (uint64_t) (( 0x01u + (k * phi)) / (double)e);
+
+#if (DEBUGGING_FLAG == DEBUGGING_ACTIVE)
+	win64_dbg_msg("d: %llu, k: %llu", d, k);
+#endif
+}/* getPrivateKey */
 
 _STATIC_INLINE uint64_t
 getGCD(uint64_t numA, uint64_t numB)

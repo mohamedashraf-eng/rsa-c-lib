@@ -127,8 +127,17 @@ _FORCE_CONST
 _STATIC_INLINE uint64_t
 getGCD(uint64_t numA, uint64_t numB);
 
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE uint64_t
+getPublicKeyParams(const uint64_t PrimeNumberA, 
+             const uint64_t PrimeNumberB);
 
-
+_FORCE_INLINE
+_FORCE_CONST
+_STATIC_INLINE uint64_t
+getPrivateKeyParams(const uint64_t PrimeNumberA, 
+              			const uint64_t PrimeNumberB);
 
 /** @def Handeling name mangle */
 #ifdef __cplusplus

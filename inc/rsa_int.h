@@ -27,19 +27,6 @@ extern "C" {
 *--------------------------------------------------------------------------------------
 **/
 
-/**
- * @defgroup Configuration Parameters
- *      @arg DEBUGGING_ACTIVE
- *      @arg DEBUGGING_INACTIVE
- */
-#define DEBUGGING_FLAG              (DEBUGGING_ACTIVE)
-/**
- * @defgroup Configuration Parameters
- *      @arg FULL_ASSERTION_ACTIVE
- *      @arg FULL_ASSERTION_INACTIVE
- */
-#define FULL_ASSERTION_FLAG         (FULL_ASSERTION_ACTIVE)
-
 /*
 *--------------------------------------------------------------------------------------
 *- Data types
@@ -67,8 +54,11 @@ typedef struct rsa_parameters
 *--------------------------------------------------------------------------------------
 **/
 
+void 
+generate_keys(const uint8_t * const pString);
 
-void public_testing(void);
+void 
+public_testing(void);
 
 
 
